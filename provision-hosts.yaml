@@ -1,0 +1,6 @@
+---
+all:
+  children:
+    provision:
+      hosts:
+        1.1.1.1

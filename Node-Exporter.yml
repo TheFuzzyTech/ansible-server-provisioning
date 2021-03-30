@@ -1,0 +1,47 @@
+---
+- name: Install Node-Exporter
+  hosts: provision
+
+  tasks:
+  - name: Download and Extract Node-Exporter
+    ansible.builtin.unarchive:
+      src: "https://github.com/prometheus/node_exporter/releases/download/v1.1.2/node_exporter-1.1.2.linux-amd64.tar.gz"
+      dest: "/tmp"
+      remote_src: yes
+    register: tar
+  - name: Move Node-Exporter Binary to sbin
+    become: yes
+    copy:
+      src: "/tmp/node_exporter-1.1.2.linux-amd64/node_exporter"
+      dest: "/usr/sbin/node_exporter"
+      remote_src: yes
+    register: move
+  - name: Create node_exporter user
+    become: yes
+    user:
+      name: node_exporter
+  - name: Create Systemd job
+    become: yes
+    copy:
+      dest: "/etc/systemd/system/node-exporter.service"
+      content: |
+        [Unit]
+        Description=Node Exporter
+        Wants=network-online.target
+        After=network-online.target
+
+        [Service]
+        User=node_exporter
+        ExecStart=/usr/sbin/node_exporter $OPTIONS
+
+        [Install]
+        WantedBy=multi-user.target
+  - name: Reload Systemd
+    become: yes
+    systemd:
+      daemon_reload: yes
+  - name: Start Node-exporter
+    become: yes
+    systemd:
+      state: started
+      name: node-exporter

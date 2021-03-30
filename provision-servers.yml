@@ -1,0 +1,15 @@
+---
+- name: Provision Servers
+  hosts: provision
+  tasks:
+  - name: Load Variables
+    include_vars:
+      file: provision-variables.yml
+      name: provision
+- name: Install Node-exporter
+  import_playbook: Node-Exporter.yml
+- name: Install Graylog Sidecar
+  import_playbook: Graylog-Sidecar.yml
+  vars:
+    url: "{{ provision.Graylog.url }}"
+    token: "{{ provision.Graylog.token }}"

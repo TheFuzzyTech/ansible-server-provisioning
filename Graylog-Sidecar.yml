@@ -1,0 +1,40 @@
+---
+- name: Install Graylog Sidecar
+  hosts: provision
+
+  tasks:
+  - name: Download Graylog Sidecar
+    become: yes
+    apt:
+      deb: "https://packages.graylog2.org/repo/packages/graylog-sidecar-repository_1-2_all.deb"
+  - name: Install Graylog Sidecar
+    become: yes
+    apt:
+      name: graylog-sidecar
+      state: present
+      update_cache: yes
+  - name: Edit Server url in config
+    become: yes
+    lineinfile:
+      path: /etc/graylog/sidecar/sidecar.yml
+      regexp: '^[#s|s]erver_url:'
+      line: 'server_url: "{{ url }}"'
+  - name: Edit api token in config
+    become: yes
+    lineinfile:
+      path: /etc/graylog/sidecar/sidecar.yml
+      regexp: '^server_api_token:'
+      line: 'server_api_token: "{{ token }}"'
+  # This could probably just check if the service file exists instead
+  - name: check if service exists
+    service_facts:
+  - name: install sidecar service
+    become: yes
+    command: sudo graylog-sidecar -service install
+    ignore_errors: yes
+    when: "'graylog-sidecar' in services"
+  - name: start sidecar service
+    become: yes
+    systemd:
+      name: graylog-sidecar
+      state: started
