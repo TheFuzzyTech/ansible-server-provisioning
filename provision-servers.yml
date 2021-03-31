@@ -13,3 +13,5 @@
   vars:
     url: "{{ provision.Graylog.url }}"
     token: "{{ provision.Graylog.token }}"
+- name: Install Filebeat
+  import_playbook: Filebeat.yml
